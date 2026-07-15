@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Campus Helpdesk — Call Prototype</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B1F3B;
+    --ink-soft:#2B3060;
+    --paper:#F4EFE4;
+    --marigold:#E8A33D;
+    --marigold-deep:#C97F1E;
+    --leaf:#4C9A6A;
+    --clay:#D6604D;
+    --cream:#F2EFE9;
+    --line: rgba(242,239,233,0.14);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(232,163,61,0.10), transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(76,154,106,0.08), transparent 45%),
+      var(--paper);
+    font-family:'IBM Plex Sans', sans-serif;
+    padding:32px 16px;
+  }
+
+  .stage{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:14px;
+  }
+  .stage-label{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    opacity:0.55;
+  }
+
+  /* ---- Phone shell ---- */
+  .phone{
+    width:340px;
+    height:680px;
+    border-radius:42px;
+    background: linear-gradient(180deg, var(--ink) 0%, var(--ink-soft) 100%);
+    box-shadow: 0 30px 60px -20px rgba(27,31,59,0.45), 0 0 0 8px #0f1128;
+    position:relative;
+    overflow:hidden;
+    color:var(--cream);
+    display:flex;
+    flex-direction:column;
+  }
+  .notch{
+    position:absolute;
+    top:0; left:50%; transform:translateX(-50%);
+    width:120px; height:22px;
+    background:#0f1128;
+    border-radius:0 0 16px 16px;
+    z-index:5;
+  }
+  .statusbar{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:16px 22px 6px;
+    font-size:12px; font-weight:500;
+    color:rgba(242,239,233,0.65);
+  }
+
+  /* ---- Home / call screen ---- */
+  .screen{ flex:1; display:flex; flex-direction:column; }
+
+  .home{
+    flex:1; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:22px; padding:20px;
+  }
+  .avatar{
+    width:92px; height:92px; border-radius:50%;
+    background: linear-gradient(155deg, var(--marigold), var(--marigold-deep));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:30px;
+    color:var(--ink); box-shadow:0 10px 30px -8px rgba(232,163,61,0.55);
+  }
+  .contact-name{
+    font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:20px;
+  }
+  .contact-sub{ font-size:13px; color:rgba(242,239,233,0.5); }
+  .call-btn{
+    width:64px; height:64px; border-radius:50%; border:none;
+    background: var(--leaf); color:var(--cream);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; font-size:24px;
+    box-shadow:0 10px 24px -6px rgba(76,154,106,0.6);
+    transition:transform .15s ease;
+  }
+  .call-btn:hover{ transform:scale(1.06); }
+  .hint{
+    font-size:12px; color:rgba(242,239,233,0.4); text-align:center; max-width:220px;
+  }
+
+  /* ---- Ringing ---- */
+  .ringing{
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
+  }
+  .pulse-ring{
+    width:92px; height:92px; border-radius:50%;
+    background: linear-gradient(155deg, var(--marigold), var(--marigold-deep));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:30px; color:var(--ink);
+    position:relative;
+  }
+  .pulse-ring::before, .pulse-ring::after{
+    content:''; position:absolute; inset:0; border-radius:50%;
+    border:2px solid var(--marigold); opacity:0; animation: pulse 1.6s ease-out infinite;
+  }
+  .pulse-ring::after{ animation-delay:.5s; }
+  @keyframes pulse{ 0%{transform:scale(1); opacity:.7;} 100%{transform:scale(1.9); opacity:0;} }
+  .ringing-label{ font-size:13px; color:rgba(242,239,233,0.6); letter-spacing:0.03em; }
+
+  /* ---- In call ---- */
+  /* ---- In call ---- */
+  .screen{ flex:1; display:flex; flex-direction:column; min-height:0; }
+
+  .call-header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 18px; border-bottom:1px solid var(--line);
+  }
+  .call-header .who{ display:flex; align-items:center; gap:10px; }
+  .mini-avatar{
+    width:34px; height:34px; border-radius:50%;
+    background: linear-gradient(155deg, var(--marigold), var(--marigold-deep));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:14px; color:var(--ink);
+  }
+  .call-timer{ font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--leaf); }
+  .end-call{
+    width:34px; height:34px; border-radius:50%; border:none; background:var(--clay);
+    color:var(--cream); font-size:15px; cursor:pointer;
+  }
+
+  .transcript{
+    flex:1; min-height:0; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px;
+  }
+  .transcript::-webkit-scrollbar{ width:4px; }
+  .transcript::-webkit-scrollbar-thumb{ background:rgba(242,239,233,0.15); border-radius:4px; }
+
+  .bubble{
+    max-width:82%; padding:10px 13px; border-radius:14px; font-size:13.5px; line-height:1.45;
+    animation: rise .25s ease both;
+  }
+  @keyframes rise{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+  .bubble.agent{
+    align-self:flex-start; background:rgba(242,239,233,0.08);
+    border:1px solid var(--line); border-bottom-left-radius:4px;
+  }
+  .bubble.user{
+    align-self:flex-end; background: linear-gradient(155deg, var(--marigold), var(--marigold-deep));
+    color:var(--ink); border-bottom-right-radius:4px; font-weight:500;
+  }
+  .bubble.system{
+    align-self:center; background:transparent; color:rgba(242,239,233,0.4);
+    font-size:11px; letter-spacing:0.04em; text-transform:uppercase; padding:2px 0;
+  }
+  .bubble.ticket{
+    align-self:stretch; background:rgba(76,154,106,0.12); border:1px solid rgba(76,154,106,0.4);
+  }
+  .bubble.ticket .tid{ font-family:'IBM Plex Mono', monospace; color:var(--leaf); font-weight:600; }
+
+  .waveform{ display:flex; align-items:center; gap:3px; height:16px; }
+  .waveform span{
+    width:3px; background:var(--marigold); border-radius:2px;
+    animation: wave 0.9s ease-in-out infinite;
+  }
+  .waveform span:nth-child(1){ height:6px; animation-delay:0s; }
+  .waveform span:nth-child(2){ height:14px; animation-delay:.12s; }
+  .waveform span:nth-child(3){ height:9px; animation-delay:.24s; }
+  .waveform span:nth-child(4){ height:16px; animation-delay:.36s; }
+  .waveform span:nth-child(5){ height:7px; animation-delay:.48s; }
+  @keyframes wave{ 0%,100%{ transform:scaleY(0.4); } 50%{ transform:scaleY(1); } }
+
+  .menu-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:4px; }
+  .menu-btn{
+    border:1px solid var(--line); background:rgba(242,239,233,0.05);
+    color:var(--cream); border-radius:10px; padding:10px 8px;
+    font-family:'IBM Plex Sans', sans-serif; font-size:12.5px; text-align:left; cursor:pointer;
+    display:flex; align-items:center; gap:8px; transition:.15s ease;
+  }
+  .menu-btn .digit{
+    width:22px; height:22px; border-radius:50%; background:var(--marigold); color:var(--ink);
+    display:flex; align-items:center; justify-content:center; font-weight:700; font-size:11px; flex-shrink:0;
+  }
+  .menu-btn:hover{ background:rgba(232,163,61,0.14); border-color:var(--marigold); }
+
+  .choice-row{ display:flex; gap:8px; margin-top:4px; }
+  .choice-btn{
+    flex:1; border:1px solid var(--line); background:rgba(242,239,233,0.05);
+    color:var(--cream); border-radius:10px; padding:9px; font-size:12.5px; cursor:pointer;
+  }
+  .choice-btn.primary{ background:var(--marigold); color:var(--ink); border-color:var(--marigold); font-weight:600; }
+  .choice-btn:hover{ filter:brightness(1.08); }
+
+  .input-row{
+    display:flex; gap:8px; padding:12px 14px 16px; border-top:1px solid var(--line);
+  }
+  .input-row input{
+    flex:1; background:rgba(242,239,233,0.06); border:1px solid var(--line);
+    border-radius:20px; padding:10px 14px; color:var(--cream); font-size:13px; font-family:inherit;
+    outline:none;
+  }
+  .input-row input:focus{ border-color:var(--marigold); }
+  .input-row input::placeholder{ color:rgba(242,239,233,0.35); }
+  .mic-send{
+    width:38px; height:38px; border-radius:50%; border:none; background:var(--marigold);
+    color:var(--ink); font-size:15px; cursor:pointer; flex-shrink:0;
+  }
+
+  /* ---- WhatsApp escalation toast ---- */
+  .wa-toast{
+    position:absolute; top:34px; left:10px; right:10px; z-index:20;
+    background:#111b21; border:1px solid rgba(37,211,102,0.35);
+    border-radius:14px; padding:10px 12px; display:flex; gap:10px; align-items:flex-start;
+    box-shadow:0 12px 30px -10px rgba(0,0,0,0.6);
+    transform:translateY(-120%); opacity:0; transition:transform .4s cubic-bezier(.2,.9,.3,1.3), opacity .3s;
+  }
+  .wa-toast.show{ transform:translateY(0); opacity:1; }
+  .wa-icon{
+    width:30px; height:30px; border-radius:50%; background:#25D366; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:15px;
+  }
+  .wa-body .wa-title{ font-size:12px; font-weight:600; color:#fff; }
+  .wa-body .wa-sub{ font-size:11px; color:rgba(255,255,255,0.65); margin-top:2px; line-height:1.4; }
+
+  .restart-note{
+    font-size:12px; color:var(--ink-soft); opacity:.6; text-align:center; max-width:300px;
+  }
+  .restart-btn{
+    font-family:'Space Grotesk', sans-serif; font-size:12.5px; font-weight:600;
+    background:transparent; border:1px solid var(--ink); color:var(--ink);
+    padding:8px 16px; border-radius:20px; cursor:pointer;
+  }
+  .restart-btn:hover{ background:var(--ink); color:var(--cream); }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="stage-label">Campus Helpdesk Triage Agent — Click-through Prototype</div>
+
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="statusbar">
+      <span id="clock">9:41</span>
+      <span>Campus Helpdesk</span>
+      <span>🔋</span>
+    </div>
+
+    <div class="screen" id="screen">
+      <!-- populated by JS -->
+    </div>
+
+    <div class="wa-toast" id="waToast">
+      <div class="wa-icon">💬</div>
+      <div class="wa-body">
+        <div class="wa-title">Hostel Team — WhatsApp</div>
+        <div class="wa-sub" id="waSub">New ticket assigned</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="restart-note">Simulated call flow — no phone line needed. Real Twilio/Groq backend plugs in behind these same screens.</div>
+</div>
+
+<script>
+const screen = document.getElementById('screen');
+const waToast = document.getElementById('waToast');
+const waSub = document.getElementById('waSub');
+
+const CATEGORY_LABELS = {1:'Fees', 2:'Hostel', 3:'Exams', 4:'Admissions', 5:'Placements', 6:'General / Other'};
+const TEAM_LABELS = {1:'Accounts Team', 2:'Hostel Team', 3:'Exam Cell', 4:'Admissions Office', 5:'PAT Office', 6:'Admin Team'};
+
+// Backend base URL. Change this if your FastAPI server runs somewhere else
+// (e.g. your Render deployment URL) -- everything else in this file is unchanged.
+const API_BASE = 'http://localhost:8001';
+
+async function askBackend(category, query, attempt=0, context=[]){
+  try {
+    const res = await fetch(`${API_BASE}/api/query`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ category: String(category), query, attempt, context })
+    });
+    if(!res.ok) throw new Error(`Backend returned ${res.status}`);
+    return await res.json(); // { action, answer, clarify_question, urgency, confidence }
+  } catch (err) {
+    console.error('askBackend failed:', err);
+    return { action: 'error', error: true };
+  }
+}
+
+async function fileTicketBackend(category, name, roll_no, query, urgency='normal'){
+  try {
+    const res = await fetch(`${API_BASE}/api/ticket`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ category: String(category), name, roll_no, query, urgency })
+    });
+    if(!res.ok) throw new Error(`Backend returned ${res.status}`);
+    return await res.json(); // { ticket_id, team }
+  } catch (err) {
+    console.error('fileTicketBackend failed:', err);
+    return { ticket_id: null, team: TEAM_LABELS[category], error: true };
+  }
+}
+
+let state = {};
+
+function render(html){
+  screen.innerHTML = html;
+}
+
+function scrollToBottom(){
+  const t = document.getElementById('transcript');
+  if(t) t.scrollTop = t.scrollHeight;
+}
+
+function goHome(){
+  state = {};
+  render(`
+    <div class="home">
+      <div class="avatar">CH</div>
+      <div class="contact-name">Campus Helpdesk</div>
+      <div class="contact-sub">Answers routine queries · escalates the rest</div>
+      <button class="call-btn" onclick="startRinging()">📞</button>
+      <div class="hint">Tap to place a call and try the flow — the same one a student would dial in to.</div>
+    </div>
+  `);
+}
+
+function startRinging(){
+  render(`
+    <div class="ringing">
+      <div class="pulse-ring">CH</div>
+      <div class="ringing-label">Calling Campus Helpdesk…</div>
+    </div>
+  `);
+  setTimeout(connectCall, 1400);
+}
+
+function connectCall(){
+  state.startedAt = Date.now();
+  render(`
+    <div class="call-header">
+      <div class="who">
+        <div class="mini-avatar">CH</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;">Campus Helpdesk</div>
+          <div class="call-timer" id="timer">00:00</div>
+        </div>
+      </div>
+      <button class="end-call" onclick="goHome()">✕</button>
+    </div>
+    <div class="transcript" id="transcript"></div>
+  `);
+  tickTimer();
+  agentSay(
+    "Welcome to the Campus Helpdesk.",
+    `<div class="menu-grid">
+       <button class="menu-btn" onclick="selectCategory(1)"><span class="digit">1</span> Fees</button>
+       <button class="menu-btn" onclick="selectCategory(2)"><span class="digit">2</span> Hostel</button>
+       <button class="menu-btn" onclick="selectCategory(3)"><span class="digit">3</span> Exams</button>
+       <button class="menu-btn" onclick="selectCategory(4)"><span class="digit">4</span> Admissions</button>
+       <button class="menu-btn" onclick="selectCategory(5)"><span class="digit">5</span> Placements</button>
+       <button class="menu-btn" onclick="selectCategory(6)"><span class="digit">6</span> Other</button>
+     </div>`
+  );
+}
+
+function tickTimer(){
+  const el = document.getElementById('timer');
+  if(!el) return;
+  const secs = Math.floor((Date.now() - state.startedAt)/1000);
+  const m = String(Math.floor(secs/60)).padStart(2,'0');
+  const s = String(secs%60).padStart(2,'0');
+  el.textContent = `${m}:${s}`;
+  setTimeout(tickTimer, 1000);
+}
+
+function bubble(cls, html){
+  const t = document.getElementById('transcript');
+  const div = document.createElement('div');
+  div.className = `bubble ${cls}`;
+  div.innerHTML = html;
+  t.appendChild(div);
+  scrollToBottom();
+  return div;
+}
+
+function agentSay(text, extraHtml=''){
+  bubble('agent', `${text}${extraHtml}`);
+}
+
+function selectCategory(cat){
+  state.category = cat;
+  bubble('user', `Pressed ${cat}`);
+  bubble('system', `${CATEGORY_LABELS[cat]} selected`);
+  setTimeout(() => {
+    agentSay(`You selected ${CATEGORY_LABELS[cat]}. Please speak your question after the beep.`);
+    showQueryInput();
+  }, 350);
+}
+
+function showQueryInput(){
+  const t = document.getElementById('transcript');
+  const wrap = document.createElement('div');
+  wrap.className = 'input-row';
+  wrap.id = 'liveInput';
+  wrap.innerHTML = `
+    <input type="text" id="queryBox" placeholder="Type your question (simulating speech)…" />
+    <button class="mic-send" onclick="submitQuery()">➤</button>
+  `;
+  document.getElementById('screen').appendChild(wrap);
+  document.getElementById('queryBox').focus();
+  document.getElementById('queryBox').addEventListener('keydown', e => { if(e.key==='Enter') submitQuery(); });
+}
+
+function submitQuery(){
+  const box = document.getElementById('queryBox');
+  const val = box.value.trim();
+  if(!val) return;
+  document.getElementById('liveInput').remove();
+  bubble('user', val);
+  state.query = val;
+  state.context = [];
+  runTriage(0);
+}
+
+function runTriage(attempt){
+  thinking(async () => {
+    const result = await askBackend(state.category, state.query, attempt, state.context);
+
+    if(result.error || result.action === 'error'){
+      agentSay("I couldn't reach the helpdesk server just now, so I'll log this as a ticket instead. What's your full name?");
+      showNameInput();
+      return;
+    }
+
+    if(result.action === 'answered'){
+      agentSay(result.answer, `
+        <div class="choice-row">
+          <button class="choice-btn primary" onclick="anotherQuestion()">1 · Another question</button>
+          <button class="choice-btn" onclick="endCallScreen()">2 · End call</button>
+        </div>`);
+      return;
+    }
+
+    if(result.action === 'clarify'){
+      agentSay(result.clarify_question);
+      showClarifyInput(attempt + 1);
+      return;
+    }
+
+    // action === 'escalate'
+    state.urgency = result.urgency || 'normal';
+    const urgentNote = state.urgency === 'high' ? ' This sounds urgent, so I\'ll flag it for priority follow-up.' : '';
+    agentSay(`I'm not confident I can answer that correctly, so I'll create a ticket for our team to follow up.${urgentNote} What's your full name?`);
+    showNameInput();
+  });
+}
+
+function showClarifyInput(nextAttempt){
+  const t = document.getElementById('transcript');
+  const wrap = document.createElement('div');
+  wrap.className = 'input-row';
+  wrap.id = 'liveInput';
+  wrap.innerHTML = `
+    <input type="text" id="clarifyBox" placeholder="Type your answer…" />
+    <button class="mic-send" onclick="submitClarify(${nextAttempt})">➤</button>
+  `;
+  document.getElementById('screen').appendChild(wrap);
+  document.getElementById('clarifyBox').focus();
+  document.getElementById('clarifyBox').addEventListener('keydown', e => { if(e.key==='Enter') submitClarify(nextAttempt); });
+}
+
+function submitClarify(nextAttempt){
+  const box = document.getElementById('clarifyBox');
+  const val = box.value.trim();
+  if(!val) return;
+  document.getElementById('liveInput').remove();
+  bubble('user', val);
+  state.context.push(val);
+  runTriage(nextAttempt);
+}
+
+function thinking(cb){
+  const t = document.getElementById('transcript');
+  const div = document.createElement('div');
+  div.className = 'bubble agent';
+  div.innerHTML = `<div class="waveform"><span></span><span></span><span></span><span></span><span></span></div>`;
+  t.appendChild(div);
+  scrollToBottom();
+  setTimeout(async () => { div.remove(); await cb(); }, 900);
+}
+
+function anotherQuestion(){
+  agentSay("Sure — what else would you like to know?");
+  showQueryInput();
+}
+
+function showNameInput(){
+  const wrap = document.createElement('div');
+  wrap.className = 'input-row';
+  wrap.id = 'liveInput';
+  wrap.innerHTML = `
+    <input type="text" id="nameBox" placeholder="Your full name…" />
+    <button class="mic-send" onclick="submitName()">➤</button>
+  `;
+  document.getElementById('screen').appendChild(wrap);
+  document.getElementById('nameBox').focus();
+  document.getElementById('nameBox').addEventListener('keydown', e => { if(e.key==='Enter') submitName(); });
+}
+
+function submitName(){
+  const val = document.getElementById('nameBox').value.trim();
+  if(!val) return;
+  document.getElementById('liveInput').remove();
+  bubble('user', val);
+  state.name = val;
+  agentSay("Thanks. Please enter your roll number on the keypad, then confirm.");
+  showRollInput();
+}
+
+function showRollInput(){
+  const wrap = document.createElement('div');
+  wrap.className = 'input-row';
+  wrap.id = 'liveInput';
+  wrap.innerHTML = `
+    <input type="text" id="rollBox" placeholder="Roll number…" />
+    <button class="mic-send" onclick="submitRoll()">➤</button>
+  `;
+  document.getElementById('screen').appendChild(wrap);
+  document.getElementById('rollBox').focus();
+  document.getElementById('rollBox').addEventListener('keydown', e => { if(e.key==='Enter') submitRoll(); });
+}
+
+function submitRoll(){
+  const val = document.getElementById('rollBox').value.trim();
+  if(!val) return;
+  document.getElementById('liveInput').remove();
+  bubble('user', val);
+  state.roll = val;
+
+  thinking(async () => {
+    const urgency = state.urgency || 'normal';
+    const result = await fileTicketBackend(state.category, state.name, state.roll, state.query, urgency);
+    const ticketId = result.ticket_id || Math.random().toString(36).slice(2,8).toUpperCase();
+    const teamLabel = result.team || TEAM_LABELS[state.category];
+    const urgentTag = urgency === 'high' ? ' <span style="color:var(--clay); font-weight:700;">🚨 URGENT</span>' : '';
+
+    if(result.error){
+      bubble('system', 'Backend unreachable — showing a local placeholder ticket instead');
+    }
+
+    bubble('ticket', `Ticket <span class="tid">#${ticketId}</span>${urgentTag} created for ${teamLabel}.<br>They'll follow up with ${state.name} (${state.roll}) directly.`);
+    agentSay("Thank you for calling. Goodbye.", `
+      <div class="choice-row">
+        <button class="choice-btn primary" onclick="endCallScreen()">End call</button>
+      </div>`);
+    fireWhatsApp(ticketId);
+  });
+}
+
+function fireWhatsApp(ticketId){
+  waSub.textContent = `#${ticketId} · ${state.name} · ${state.query}`;
+  waToast.classList.add('show');
+  setTimeout(() => waToast.classList.remove('show'), 3800);
+}
+
+function endCallScreen(){
+  const secs = Math.floor((Date.now() - (state.startedAt||Date.now()))/1000);
+  const m = String(Math.floor(secs/60)).padStart(2,'0');
+  const s = String(secs%60).padStart(2,'0');
+  render(`
+    <div class="home">
+      <div class="avatar" style="background:linear-gradient(155deg,#8a8f9c,#5b5f6c);">✕</div>
+      <div class="contact-name">Call ended</div>
+      <div class="contact-sub">Duration ${m}:${s}</div>
+      <button class="restart-btn" onclick="goHome()">Call again</button>
+    </div>
+  `);
+}
+
+goHome();
+</script>
+
+</body>
+</html>
