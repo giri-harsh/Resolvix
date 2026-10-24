@@ -1,0 +1,6 @@
+Metadata-Version: 2.4
+Name: resolvix-contracts
+Version: 1.0.0
+Summary: Frozen shared contracts for Resolvix (brain protocol, events, ops-api payloads, config)
+Requires-Python: >=3.11
+Requires-Dist: pydantic<3,>=2.7

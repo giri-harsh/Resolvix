@@ -1,0 +1,17 @@
+# Thresholds, cost weights, and the synthetic-content penalty (§6.4, §10.3) for
+# this pack. Campus-pack defaults straight from the PRD's worked examples (§6.7).
+thresholds:
+  answer_floor: 0.55
+  human_floor: 0.50
+  immediacy_hi: 0.62
+  max_clarify: 2
+
+costs:
+  c_false_transfer: 3.0     # staff time is the scarce resource on a campus line
+  c_missed_transfer: 5.0
+  c_wrong_answer: 4.0
+  c_needless_ticket: 1.0
+
+# Subtracted from answerability when a retrieved chunk is provenance: synthetic —
+# forces synthetic content to escalate sooner rather than being spoken as settled fact.
+synthetic_answerability_penalty: 0.25

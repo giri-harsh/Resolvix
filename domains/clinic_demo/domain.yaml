@@ -1,0 +1,20 @@
+# Proves the domain boundary (§7.5, Phase 6) — a second, unrelated use case with
+# zero changes to core/. Six files, ~40 lines of yaml, no domain Python beyond
+# tools.py (which, like campus_akgec's, is empty here too).
+name: clinic_demo
+display_name: "Riverside Clinic helpline"
+greeting: "Riverside Clinic, this is the automated assistant. What can I help you with?"
+
+voice:
+  asr_language: en-US
+  tts_voice: diana   # stale "Fritz-PlayAI" fixed alongside campus_akgec's — same bug
+
+identity_fields:
+  - {key: name, prompt: "your full name", required: true}
+  - {key: dob,  prompt: "your date of birth", required: true}
+
+queues:
+  scheduling: {label: Scheduling, sla_minutes: 240, destinations: ["console:"]}
+  billing:    {label: Billing,    sla_minutes: 480, destinations: ["console:"]}
+  urgent:     {label: Urgent,     sla_minutes: 15,  destinations: ["console:"], transferable: true}
+  general:    {label: General,    sla_minutes: 480, destinations: ["console:"]}

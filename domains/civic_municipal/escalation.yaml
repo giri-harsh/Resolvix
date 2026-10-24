@@ -1,0 +1,18 @@
+# Thresholds tuned for civic-service urgency patterns, not academic ones (pivot
+# PRD's "possibly" note, §-none explicit — this is a judgment call, not sourced
+# from the PRD, flagged as such). A burst water main or a live downed wire is a
+# safety/infrastructure hazard, closer in shape to clinic_demo's reasoning than
+# campus_akgec's — escalate a notch sooner, weight a missed transfer heavier.
+thresholds:
+  answer_floor: 0.55
+  human_floor: 0.50
+  immediacy_hi: 0.55    # lower than campus's 0.62 — infrastructure hazards escalate sooner
+  max_clarify: 2
+
+costs:
+  c_false_transfer: 2.0
+  c_missed_transfer: 8.0   # higher than campus (5.0) — a missed hazard (flooding, live wire) is costlier than a missed academic query
+  c_wrong_answer: 4.0
+  c_needless_ticket: 1.0
+
+synthetic_answerability_penalty: 0.25

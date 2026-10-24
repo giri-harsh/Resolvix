@@ -1,0 +1,18 @@
+# Rubric anchors for the urgency classifier (§6.5.1). At classify time the nearest
+# few by embedding are retrieved and inlined as few-shots — sharpens as this grows.
+- text: "The hostel gate is locked and I'm outside right now"
+  vector: {time_criticality: 0.95, blocking: 1.0, harm_if_delayed: 0.6, human_authority_required: 0.8, affect: 0.7, confidence: 0.85}
+- text: "When is the fee deadline?"
+  vector: {time_criticality: 0.3, blocking: 0.2, harm_if_delayed: 0.2, human_authority_required: 0.0, affect: 0.1, confidence: 0.9}
+- text: "I need a bonafide certificate for a visa application"
+  vector: {time_criticality: 0.4, blocking: 0.3, harm_if_delayed: 0.2, human_authority_required: 0.85, affect: 0.2, confidence: 0.85}
+- text: "My roommate is being harassed and I don't know what to do"
+  vector: {time_criticality: 0.9, blocking: 0.7, harm_if_delayed: 0.9, human_authority_required: 0.9, affect: 0.9, confidence: 0.7}
+- text: "What documents do I need to carry for admission counselling?"
+  vector: {time_criticality: 0.2, blocking: 0.1, harm_if_delayed: 0.1, human_authority_required: 0.0, affect: 0.1, confidence: 0.9}
+- text: "I missed my end semester exam because I was hospitalised"
+  vector: {time_criticality: 0.7, blocking: 0.6, harm_if_delayed: 0.7, human_authority_required: 0.9, affect: 0.6, confidence: 0.75}
+- text: "Which companies visited campus last year for placements?"
+  vector: {time_criticality: 0.1, blocking: 0.1, harm_if_delayed: 0.0, human_authority_required: 0.0, affect: 0.1, confidence: 0.9}
+- text: "I want to withdraw from the hostel and get my security deposit back"
+  vector: {time_criticality: 0.3, blocking: 0.3, harm_if_delayed: 0.2, human_authority_required: 0.7, affect: 0.2, confidence: 0.8}

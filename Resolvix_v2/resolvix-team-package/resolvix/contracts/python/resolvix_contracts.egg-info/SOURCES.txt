@@ -1,0 +1,10 @@
+pyproject.toml
+resolvix_contracts/__init__.py
+resolvix_contracts/brain_protocol.py
+resolvix_contracts/models.py
+resolvix_contracts/speech.py
+resolvix_contracts.egg-info/PKG-INFO
+resolvix_contracts.egg-info/SOURCES.txt
+resolvix_contracts.egg-info/dependency_links.txt
+resolvix_contracts.egg-info/requires.txt
+resolvix_contracts.egg-info/top_level.txt

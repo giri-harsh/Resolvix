@@ -1,0 +1,36 @@
+# Campus helpdesk domain pack — everything specific to AKGEC lives here, never in core/.
+name: campus_akgec
+display_name: "A K G E C student helpdesk"
+greeting: "A K G E C helpdesk, this is the automated assistant. What can I help you with?"
+
+voice:
+  asr_language: en-IN
+  # Orpheus voice (canopylabs/orpheus-v1-english). Was "Fritz-PlayAI" (a stale
+  # playai-tts voice id from before two TTS vendor switches) — this domain-pack
+  # value silently shadowed settings.TTS_VOICE's correct default the whole time,
+  # since agora_client.py does `voice.tts_voice or settings.TTS_VOICE` and a
+  # non-empty string always wins. Confirmed live via Agora's own TTS error log.
+  tts_voice: autumn
+  # Deepgram nova-3 keyterm prompting — fixed "hall ticket" misheard as "my whole"
+  # (live-tested). Add more campus-specific terms here as more mishears surface.
+  asr_keyterms:
+    - "hall ticket"
+    - "AKGEC"
+    - "UPTAC"
+    - "roll number"
+    - "AKTU"
+
+identity_fields:
+  - {key: name,    prompt: "your full name",   required: true}
+  - {key: roll_no, prompt: "your roll number", required: true, pattern: "^[0-9]{7,12}$"}
+
+# Destinations default to console: (always free, always works, no external account
+# needed) rather than the PRD's placeholder WhatsApp numbers — swap to whatsapp:+91...
+# or webhook:https://... once real numbers/webhooks exist. Zero-budget-first default.
+queues:
+  fees:        {label: Fees,        sla_minutes: 240, destinations: ["console:"]}
+  hostel:      {label: Hostel,      sla_minutes: 60,  destinations: ["console:"], transferable: true}
+  exams:       {label: Exams,       sla_minutes: 240, destinations: ["console:"]}
+  admissions:  {label: Admissions,  sla_minutes: 480, destinations: ["console:"]}
+  placements:  {label: Placements,  sla_minutes: 480, destinations: ["console:"]}
+  general:     {label: General,     sla_minutes: 480, destinations: ["console:"]}

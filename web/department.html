@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Nagar Sahayak — staff console</title>
+<script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.20.0.js"></script>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
+  h1 { font-size: 1.3rem; }
+  .row { display: flex; gap: 0.5rem; align-items: center; margin: 0.5rem 0; }
+  select, button { font-size: 1rem; padding: 0.4rem 0.8rem; }
+  #toast { display: none; background: #fee; border: 1px solid #c33; padding: 1rem; border-radius: 8px; margin: 1rem 0; }
+  table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+  td, th { text-align: left; padding: 0.4rem; border-bottom: 1px solid #ddd; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+  <h1>🏙️ Nagar Sahayak — staff console</h1>
+
+  <div class="row">
+    <label>Queue:</label>
+    <select id="queueSelect">
+      <option value="roads">Roads &amp; Potholes</option>
+      <option value="water">Water Supply</option>
+      <option value="sanitation">Sanitation &amp; Garbage</option>
+      <option value="electricity">Streetlight / Electric</option>
+      <option value="drainage">Drainage / Waterlogging</option>
+      <option value="general">General</option>
+    </select>
+    <button id="availableBtn">Go available</button>
+    <span id="presenceStatus">offline</span>
+  </div>
+
+  <div id="toast">
+    <strong>Transfer request</strong>
+    <div id="toastDetail"></div>
+    <button id="joinBtn">Join call</button>
+  </div>
+
+  <h2>Open tickets</h2>
+  <table id="ticketsTable">
+    <thead><tr><th>ID</th><th>Queue</th><th>Priority</th><th>Summary</th><th>Status</th></tr></thead>
+    <tbody></tbody>
+  </table>
+
+<script>
+const API_BASE = window.location.origin;
+const WS_BASE = API_BASE.replace('http', 'ws');
+let ws = null;
+let pendingTransfer = null;
+
+document.getElementById('availableBtn').onclick = () => {
+  const queue = document.getElementById('queueSelect').value;
+  if (!ws) {
+    ws = new WebSocket(`${WS_BASE}/ws/agents`);
+    ws.onopen = () => {
+      ws.send(JSON.stringify({type: 'presence', queue, available: true}));
+      document.getElementById('presenceStatus').textContent = `available for ${queue}`;
+    };
+    ws.onmessage = (evt) => {
+      const msg = JSON.parse(evt.data);
+      if (msg.type === 'transfer_request') {
+        pendingTransfer = msg;
+        document.getElementById('toastDetail').textContent = `session ${msg.session_id} — queue ${msg.queue} — ${msg.reason || ''}`;
+        document.getElementById('toast').style.display = 'block';
+      }
+    };
+  } else {
+    ws.send(JSON.stringify({type: 'presence', queue, available: true}));
+    document.getElementById('presenceStatus').textContent = `available for ${queue}`;
+  }
+};
+
+document.getElementById('joinBtn').onclick = async () => {
+  if (!pendingTransfer) return;
+  const appId = new URLSearchParams(window.location.search).get('appId') || window.RESOLVIX_APP_ID;
+  const sessionId = pendingTransfer.session_id;
+
+  const res = await fetch(`${API_BASE}/calls/${sessionId}/transfer`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({queue: pendingTransfer.queue, reason: 'staff joining'}),
+  });
+  const {staff_token, staff_uid} = await res.json();
+
+  ws.send(JSON.stringify({type: 'claim', session_id: sessionId}));
+
+  const client = AgoraRTC.createClient({mode: 'rtc', codec: 'vp8'});
+  await client.join(appId, `call_${sessionId}`, staff_token, staff_uid);
+  const mic = await AgoraRTC.createMicrophoneAudioTrack();
+  await client.publish([mic]);
+  client.on('user-published', async (user, mediaType) => {
+    await client.subscribe(user, mediaType);
+    if (mediaType === 'audio') user.audioTrack.play();
+  });
+
+  document.getElementById('toast').style.display = 'none';
+  pendingTransfer = null;
+};
+
+async function refreshTickets() {
+  const res = await fetch(`${API_BASE}/api/tickets?status=open`);
+  const tickets = await res.json();
+  const tbody = document.querySelector('#ticketsTable tbody');
+  tbody.innerHTML = '';
+  for (const t of tickets) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${t.id}</td><td>${t.queue}</td><td>${t.priority}</td><td>${t.summary}</td><td>${t.status}</td>`;
+    tbody.appendChild(tr);
+  }
+}
+refreshTickets();
+setInterval(refreshTickets, 10000);
+</script>
+</body>
+</html>

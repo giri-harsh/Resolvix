@@ -1,0 +1,15 @@
+# Rubric anchors for the urgency classifier — civic-service examples, not academic.
+- text: "There's a water pipe burst outside my house and the street is flooding"
+  vector: {time_criticality: 0.9, blocking: 0.8, harm_if_delayed: 0.8, human_authority_required: 0.7, affect: 0.7, confidence: 0.85}
+- text: "A live electric wire has fallen on the road near my house"
+  vector: {time_criticality: 1.0, blocking: 0.9, harm_if_delayed: 1.0, human_authority_required: 0.9, affect: 0.9, confidence: 0.9}
+- text: "There's a pothole on my street, it's been there for weeks"
+  vector: {time_criticality: 0.3, blocking: 0.2, harm_if_delayed: 0.3, human_authority_required: 0.2, affect: 0.2, confidence: 0.85}
+- text: "What is the status of my garbage collection complaint from last week?"
+  vector: {time_criticality: 0.2, blocking: 0.1, harm_if_delayed: 0.1, human_authority_required: 0.1, affect: 0.1, confidence: 0.9}
+- text: "The streetlight on my block has been off for a month"
+  vector: {time_criticality: 0.4, blocking: 0.3, harm_if_delayed: 0.3, human_authority_required: 0.2, affect: 0.2, confidence: 0.85}
+- text: "Drainage is completely blocked and water is entering my house"
+  vector: {time_criticality: 0.85, blocking: 0.8, harm_if_delayed: 0.75, human_authority_required: 0.6, affect: 0.7, confidence: 0.8}
+- text: "I want to know which documents are needed to file a property complaint"
+  vector: {time_criticality: 0.1, blocking: 0.1, harm_if_delayed: 0.0, human_authority_required: 0.1, affect: 0.1, confidence: 0.9}

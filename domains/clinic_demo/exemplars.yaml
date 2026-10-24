@@ -1,0 +1,8 @@
+- text: "I think I'm having chest pain"
+  vector: {time_criticality: 1.0, blocking: 1.0, harm_if_delayed: 1.0, human_authority_required: 1.0, affect: 0.9, confidence: 0.9}
+- text: "What are your opening hours on Saturday?"
+  vector: {time_criticality: 0.1, blocking: 0.1, harm_if_delayed: 0.0, human_authority_required: 0.0, affect: 0.1, confidence: 0.9}
+- text: "I need to reschedule my appointment"
+  vector: {time_criticality: 0.3, blocking: 0.2, harm_if_delayed: 0.1, human_authority_required: 0.3, affect: 0.1, confidence: 0.85}
+- text: "My child has had a high fever for two days"
+  vector: {time_criticality: 0.8, blocking: 0.6, harm_if_delayed: 0.7, human_authority_required: 0.8, affect: 0.7, confidence: 0.75}

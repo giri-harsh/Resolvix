@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Nagar Sahayak — municipal helpline</title>
+<script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.20.0.js"></script>
+<style>
+  :root {
+    --civic-blue: #1a5276;
+    --civic-teal: #148f77;
+    --civic-bg: #f4f9f9;
+  }
+  body { font-family: system-ui, sans-serif; max-width: 460px; margin: 3rem auto; text-align: center; background: var(--civic-bg); padding: 1rem; }
+  h1 { color: var(--civic-blue); font-size: 1.6rem; margin-bottom: 0.2rem; }
+  .subtitle { color: #555; font-size: 0.95rem; margin-bottom: 1.5rem; }
+  button { font-size: 1.1rem; padding: 0.6rem 1.6rem; border-radius: 8px; border: none; cursor: pointer; margin: 0 0.3rem; }
+  #callBtn { background: var(--civic-teal); color: white; }
+  #hangupBtn { background: #c0392b; color: white; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  #status { margin-top: 1.5rem; color: #333; white-space: pre-line; font-size: 0.95rem; }
+  #caseCard {
+    display: none; margin-top: 1.5rem; padding: 1rem; border-radius: 10px;
+    background: white; border: 2px solid var(--civic-teal); text-align: left;
+  }
+  #caseCard h3 { margin: 0 0 0.5rem 0; color: var(--civic-blue); font-size: 1.1rem; }
+  #caseCard .field { margin: 0.2rem 0; font-size: 0.9rem; }
+  #caseCard .label { color: #666; }
+</style>
+</head>
+<body>
+  <h1>🏙️ Nagar Sahayak</h1>
+  <div class="subtitle">Municipal helpline — describe your issue in Hindi or English</div>
+  <button id="callBtn">Call</button>
+  <button id="hangupBtn" disabled>Hang up</button>
+  <div id="status">idle</div>
+
+  <div id="caseCard">
+    <h3>Case Logged</h3>
+    <div class="field"><span class="label">Case ID:</span> <strong id="caseId"></strong></div>
+    <div class="field"><span class="label">Department:</span> <span id="caseQueue"></span></div>
+    <div class="field"><span class="label">Status:</span> <span id="caseStatus"></span></div>
+  </div>
+
+<script>
+const API_BASE = window.location.origin;
+const DOMAIN = new URLSearchParams(window.location.search).get('domain') || 'civic_municipal';
+const statusEl = document.getElementById('status');
+const callBtn = document.getElementById('callBtn');
+const hangupBtn = document.getElementById('hangupBtn');
+const caseCard = document.getElementById('caseCard');
+
+let client = null;
+let localAudioTrack = null;
+let currentSessionId = null;
+let ticketPollTimer = null;
+
+function log(msg) {
+  statusEl.textContent = msg;
+  console.log(msg);
+}
+
+async function pollForTicket() {
+  if (!currentSessionId) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/tickets?session_id=${currentSessionId}`);
+    const tickets = await res.json();
+    if (tickets.length > 0) {
+      const t = tickets[0];
+      document.getElementById('caseId').textContent = t.id;
+      document.getElementById('caseQueue').textContent = t.queue;
+      document.getElementById('caseStatus').textContent = t.status;
+      caseCard.style.display = 'block';
+    }
+  } catch (e) { /* quiet — this is a nice-to-have overlay, not critical path */ }
+}
+
+callBtn.onclick = async () => {
+  callBtn.disabled = true;
+  caseCard.style.display = 'none';
+  log('requesting channel...');
+  try {
+    const callRes = await fetch(`${API_BASE}/calls`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ domain: DOMAIN }),
+    });
+    if (!callRes.ok) throw new Error(`POST /calls failed: ${callRes.status}`);
+    const call = await callRes.json();
+    currentSessionId = call.session_id;
+
+    // AGORA_APP_ID is public and safe in the browser (PRD §4.4).
+    const appId = new URLSearchParams(window.location.search).get('appId') || window.RESOLVIX_APP_ID;
+    if (!appId) throw new Error('no Agora App ID — pass ?appId=... or set window.RESOLVIX_APP_ID');
+
+    client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+
+    client.on('user-published', async (user, mediaType) => {
+      await client.subscribe(user, mediaType);
+      if (mediaType === 'audio') {
+        user.audioTrack.play();
+        log(`connected: ${call.channel}\nNagar Sahayak is listening...`);
+      }
+    });
+
+    await client.join(appId, call.channel, call.token, call.uid);
+
+    try {
+      localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+      await client.publish([localAudioTrack]);
+    } catch (micErr) {
+      console.warn(`mic unavailable, continuing listen-only: ${micErr.message}`);
+    }
+
+    log(`connected: ${call.channel}\nwaiting for agent...`);
+    hangupBtn.disabled = false;
+    ticketPollTimer = setInterval(pollForTicket, 4000);
+  } catch (err) {
+    log(`error: ${err.message}`);
+    callBtn.disabled = false;
+  }
+};
+
+hangupBtn.onclick = async () => {
+  hangupBtn.disabled = true;
+  try {
+    if (currentSessionId) {
+      await fetch(`${API_BASE}/calls/${currentSessionId}`, { method: 'DELETE' });
+    }
+    if (localAudioTrack) localAudioTrack.close();
+    if (client) await client.leave();
+  } finally {
+    if (ticketPollTimer) clearInterval(ticketPollTimer);
+    log('idle');
+    callBtn.disabled = false;
+    currentSessionId = null;
+  }
+};
+</script>
+</body>
+</html>

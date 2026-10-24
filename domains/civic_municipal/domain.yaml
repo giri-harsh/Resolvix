@@ -1,0 +1,57 @@
+# Nagar Sahayak — municipal civic-services domain pack. Mirrors campus_akgec's
+# structure exactly (v3 pivot PRD §3.1) — zero core edits needed to add this pack.
+name: civic_municipal
+display_name: "Nagar Sahayak — municipal helpline"
+greeting: "Nagar Sahayak mein aapka swagat hai. Aap apni samasya bataiye — Hindi ya English, jaise aapko theek lage."
+
+voice:
+  # TEMPORARY, reliability-first change: "multi" (Deepgram's code-switch mode)
+  # was producing empty transcripts on real live speech, repeatedly — confirmed
+  # via direct logging of the raw ConvoAI request, not assumed. "multi" mode is
+  # unique to this pivot and inherently more complex internally than a single
+  # fixed language; the original campus_akgec pack never used it and never had
+  # this problem. Switching to en-IN to prioritize "one reliable answer" for the
+  # demo over code-switch support — revert to "multi" once there's time to
+  # actually diagnose why multi-mode was dropping transcripts.
+  asr_language: en-IN
+  # Orpheus (canopylabs/orpheus-v1-english) accepted Hindi text and returned audio
+  # without erroring, but it's explicitly English-branded with no Hindi-specific
+  # voice on this account, and pronunciation quality couldn't be verified without
+  # a human listening. Deliberate asymmetric design (pivot PRD §5, Open Question 2's
+  # own anticipated fallback): caller may speak Hindi/code-switched, agent
+  # understands it, but responds primarily in English. Revisit if a Hindi-capable
+  # TTS voice becomes available.
+  tts_voice: autumn
+  # Deepgram nova-3 keyterm prompting — matches the real corpus taxonomy now in
+  # place (was campus-scaffold guesses like "pothole"/"drainage", which have no
+  # corresponding corpus content at all — fixed alongside the queue remap below).
+  asr_keyterms:
+    - "water supply"
+    - "BWSSB"
+    - "certificate"
+    - "Sakala"
+    - "Seva Sindhu"
+    - "BMTC"
+    - "Namma Metro"
+    - "RTO"
+
+identity_fields:
+  - {key: name,    prompt: "aapka naam / your name",       required: true}
+  - {key: phone,   prompt: "callback ke liye number",       required: true, pattern: "^[0-9]{10}$"}
+  - {key: address, prompt: "location ya ward number",       required: true}
+
+# Remapped to match the real corpus taxonomy (domains/civic_municipal/corpus/*.md
+# front-matter `queue:` values) — was still the original placeholder scaffold
+# (roads/water/sanitation/electricity/drainage/general) even after real corpus
+# content landed under a different taxonomy, which meant every chunk's `queue`
+# silently defaulted to "general" (chunking.py's fallback) and nothing ever
+# matched a real department. Destinations are still placeholders — real contacts
+# are a separate pending step.
+queues:
+  water_supply:        {label: "Water Supply (BWSSB)",              sla_minutes: 1440, destinations: ["vobiz:+91REPLACE_WITH_REAL_NUMBER"], transferable: true}
+  certificates:         {label: "Certificates & Documentation",       sla_minutes: 2880, destinations: ["webhook:REPLACE_WITH_REAL_URL"]}
+  schemes:               {label: "Government Scheme Discovery",       sla_minutes: 2880, destinations: ["webhook:REPLACE_WITH_REAL_URL"]}
+  application_status:   {label: "Application / Case Status",         sla_minutes: 1440, destinations: ["webhook:REPLACE_WITH_REAL_URL"]}
+  appointments:          {label: "Appointments (RTO / Passport)",     sla_minutes: 1440, destinations: ["webhook:REPLACE_WITH_REAL_URL"], transferable: true}
+  public_transport:     {label: "Public Transport (BMTC / Metro)",   sla_minutes: 2880, destinations: ["webhook:REPLACE_WITH_REAL_URL"]}
+  general:               {label: "General / Other",                   sla_minutes: 2880, destinations: ["console:"]}

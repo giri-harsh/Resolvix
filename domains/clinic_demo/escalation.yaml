@@ -1,0 +1,16 @@
+# A clinic line sets c_missed_transfer an order of magnitude higher than campus's —
+# a missed urgent call is unacceptable — and consequently over-transfers, correctly
+# (§6.5.2, §6.7's worked example).
+thresholds:
+  answer_floor: 0.55
+  human_floor: 0.50
+  immediacy_hi: 0.35   # lower than campus's 0.62 — escalate sooner on a medical line
+  max_clarify: 1        # one extra clarifying question is the wrong behaviour here
+
+costs:
+  c_false_transfer: 1.0
+  c_missed_transfer: 10.0
+  c_wrong_answer: 4.0
+  c_needless_ticket: 1.0
+
+synthetic_answerability_penalty: 0.25
